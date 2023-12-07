@@ -9,9 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+
     - name: Build docker image
-    run:
-      docker build . --file Dockerfile --tag cr.yandex/${{secrets.YC_REGISTRY_ID }}/delivery-service:latest
+      run: docker build . --file Dockerfile --tag cr.yandex/${{ secrets.YC_REGISTRY_ID }}/delivery-service:latest
+
     - name: Login to YC Registry
       uses: docker/login-action@v3.0.0
       with:
@@ -20,5 +21,4 @@ jobs:
         password: ${{ secrets.YC_KEYS }}
 
     - name: Push tag to YC Registry
-      run: 
-        docker push cr.yandex/${{ secrets.YC_REGISTRY_ID }}/deliveryservice:latest 
+      run: docker push cr.yandex/${{ secrets.YC_REGISTRY_ID }}/delivery-service:latest
