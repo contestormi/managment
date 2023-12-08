@@ -29,23 +29,6 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
-    services:
-      # If your Flask app requires a database or other services, define them here
-      # Example for a PostgreSQL database:
-      # postgres:
-      #   image: postgres
-      #   env:
-      #     POSTGRES_DB: yourdbname
-      #     POSTGRES_USER: youruser
-      #     POSTGRES_PASSWORD: yourpassword
-      #   options: >-
-      #     --health-cmd pg_isready
-      #     --health-interval 10s
-      #     --health-timeout 5s
-      #     --health-retries 5
-      #   ports:
-      #     - 5432:5432
-
     steps:
     - uses: actions/checkout@v2
 
@@ -57,15 +40,19 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flask sqlalchemy pytest requests
+        pip install flask sqlalchemy pytest # Add other dependencies you need
 
-    # If your app requires a database or any other services, add steps to set them up
+    - name: Create and initialize the database
+      run: |
+        export FLASK_APP=managment.py # Replace with your Flask app's entry point
+        python -c "from managment import db; db.create_all()" # Replace 'managment' with the actual Python module
 
     - name: Start Flask application
       run: |
-        export FLASK_APP=your_flask_app.py
+        export FLASK_APP=managment.py # Replace with your Flask app's entry point
         flask run --host=0.0.0.0 --port=5001 &
         sleep 10 # Wait for Flask app to start
 
     - name: Run E2E Tests
       run: pytest your_e2e_test_script.py # Replace with your E2E test script file
+
