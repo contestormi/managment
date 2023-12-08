@@ -1,57 +1,36 @@
-name: Build and Push Docker
-
+name: Build, Push Docker
 on:
   push:
-    branches: [ main ]
+    branches: [ yandex_serverless_container ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag ${{ secrets.DOCKER_HUB_USERNAME }}/managment:latest
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v1
+    - name: Build docker image
+      run: docker build . --file Dockerfile --tag cr.yandex/${{ secrets.YC_REGISTRY_ID }}/delivery-service:latest
+    - name: Login to YC Registry
+      uses: docker/login-action@v3.0.0
       with:
-        username: ${{ secrets.DOCKER_HUB_USERNAME }}
-        password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-    - name: Push to Docker Hub
-      run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/managment:latest
+        registry: cr.yandex
+        username: json_key
+        password: ${{ secrets.YC_KEYS }}
 
-# name: Python Flask CI
+    - name: Push tag to YC Registry
+      run: docker push cr.yandex/${{ secrets.YC_REGISTRY_ID }}/delivery-service:latest
 
-# on:
-#   push:
-#     branches: [ main ]
-
-# jobs:
-#   build-and-test:
-#     runs-on: ubuntu-latest
-
-#     steps:
-#     - uses: actions/checkout@v2
-
-#     - name: Set up Python
-#       uses: actions/setup-python@v2
-#       with:
-#         python-version: '3.8' # Or the version you need for your project
-
-#     - name: Install dependencies
-#       run: |
-#         python -m pip install --upgrade pip
-#         pip install flask sqlalchemy pytest flask_sqlalchemy
-#     - name: Create and initialize the database
-#       run: |
-#         export FLASK_APP=managment.py # Replace with your Flask app's entry point
-#         python -c "from managment import app, db; with app.app_context(): db.create_all()" # Replace 'managment' with the actual Python module
-
-#     - name: Start Flask application
-#       run: |
-#         export FLASK_APP=managment.py # Replace with your Flask app's entry point
-#         flask run --host=0.0.0.0 --port=5001 &
-#         sleep 10 # Wait for Flask app to start
-
-#     - name: Run E2E Tests
-#       run: pytest your_e2e_test_script.py # Replace with your E2E test script file
-
+  deploy:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Deploy serverless container
+      uses: yc-actions/yc-sls-container-deploy@v1
+      with:
+        yc-sa-json-credentials: ${{ secrets.YC_KEYS }}
+        container-name: ${{ secrets.YC_CONTAINER_NAME }}
+        folder-id: ${{ secrets.YC_FOLDER_ID }}
+        revision-image-url: cr.yandex/${{ secrets.YC_REGISTRY_ID }}/delivery-service:latest
+        revision-service-account-id: ${{ secrets.YC_SA_ID }}
+        revision-env: |
+          POSTGRES_URL=${{ secrets.ENV_POSTGRES_URL }}
