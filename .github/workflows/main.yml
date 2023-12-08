@@ -1,20 +1,73 @@
-name: Build and Push Docker
+# name: Build and Push Docker
+
+# on:
+#   push:
+#     branches: [ main ]
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+#     steps:
+#     - uses: actions/checkout@v2
+#     - name: Build the Docker image
+#       run: docker build . --file Dockerfile --tag ${{ secrets.DOCKER_HUB_USERNAME }}/managment:latest
+#     - name: Log in to Docker Hub
+#       uses: docker/login-action@v1
+#       with:
+#         username: ${{ secrets.DOCKER_HUB_USERNAME }}
+#         password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+#     - name: Push to Docker Hub
+#       run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/managment:latest
+
+name: Python Flask CI
 
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
+
+    services:
+      # If your Flask app requires a database or other services, define them here
+      # Example for a PostgreSQL database:
+      # postgres:
+      #   image: postgres
+      #   env:
+      #     POSTGRES_DB: yourdbname
+      #     POSTGRES_USER: youruser
+      #     POSTGRES_PASSWORD: yourpassword
+      #   options: >-
+      #     --health-cmd pg_isready
+      #     --health-interval 10s
+      #     --health-timeout 5s
+      #     --health-retries 5
+      #   ports:
+      #     - 5432:5432
+
     steps:
     - uses: actions/checkout@v2
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag ${{ secrets.DOCKER_HUB_USERNAME }}/managment:latest
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v1
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
       with:
-        username: ${{ secrets.DOCKER_HUB_USERNAME }}
-        password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-    - name: Push to Docker Hub
-      run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/managment:latest
+        python-version: '3.8' # Or the version you need for your project
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flask sqlalchemy pytest requests
+
+    # If your app requires a database or any other services, add steps to set them up
+
+    - name: Start Flask application
+      run: |
+        export FLASK_APP=your_flask_app.py
+        flask run --host=0.0.0.0 --port=5001 &
+        sleep 10 # Wait for Flask app to start
+
+    - name: Run E2E Tests
+      run: pytest your_e2e_test_script.py # Replace with your E2E test script file
