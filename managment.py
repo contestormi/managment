@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+import os
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -57,4 +58,4 @@ if __name__ == '__main__':
             house1 = House(address="Улица 1, Дом 1", management_id=management1.id)
             db.session.add(house1)
             db.session.commit()
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    app.run(debug=True, host='0.0.0.0', port=os.environ['PORT'])
