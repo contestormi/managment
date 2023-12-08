@@ -44,7 +44,7 @@ jobs:
     - name: Create and initialize the database
       run: |
         export FLASK_APP=managment.py # Replace with your Flask app's entry point
-        python -c "from managment import db; db.create_all()" # Replace 'managment' with the actual Python module
+        python -c "from managment import app, db; with app.app_context(): db.create_all()" # Replace 'managment' with the actual Python module
 
     - name: Start Flask application
       run: |
