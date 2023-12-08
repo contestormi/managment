@@ -1,6 +1,9 @@
 {
     "cSpell.words": [
         "jsonify",
+        "managment",
+        "psycopg",
+        "pytest",
         "sqlalchemy",
         "микросервису"
     ]
