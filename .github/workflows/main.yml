@@ -1,123 +1,40 @@
-# name: Build, Push Docker and Run E2E Tests
-
-# on:
-#   push:
-#     branches: [ yandex ]
-
-# jobs:
-  # build:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@v2
-
-  #   - name: Build docker image
-  #     run: docker build . --file Dockerfile --tag cr.yandex/${{ secrets.YC_REGISTRY_ID }}/delivery-service:latest
-
-  #   - name: Login to YC Registry
-  #     uses: docker/login-action@v3.0.0
-  #     with:
-  #       registry: cr.yandex
-  #       username: json_key
-  #       password: ${{ secrets.YC_KEYS }}
-
-  #   - name: Push tag to YC Registry
-  #     run: docker push cr.yandex/${{ secrets.YC_REGISTRY_ID }}/delivery-service:latest
-
-  # deploy:
-  #   needs: [build]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Deploy serverless container
-  #     uses: yc-actions/yc-sls-container-deploy@v1
-  #     with:
-  #       yc-sa-json-credentials: ${{ secrets.YC_KEYS }}
-  #       container-name: ${{ secrets.YC_CONTAINER_NAME }}
-  #       folder-id: ${{ secrets.YC_FOLDER_ID }}
-  #       revision-image-url: cr.yandex/${{ secrets.YC_REGISTRY_ID }}/delivery-service:latest
-  #       revision-service-account-id: ${{ secrets.YC_SA_ID }}
-  #       revision-env: |
-  #         AMQP_URL=${{ secrets.ENV_AMQP_URL }}
-  #         POSTGRES_URL=${{ secrets.ENV_POSTGRES_URL }}
-
-  # e2e-tests:
-  #   runs-on: ubuntu-latest
-  #   services:
-      # If your Flask app depends on any services like a database, define them here
-      # For example, if you use MySQL:
-    #   mysql:
-    #     image: mysql:5.7
-    #     env:
-    #       MYSQL_ROOT_PASSWORD: root
-    #       MYSQL_DATABASE: testdb
-    #     ports:
-    #       - 3306:3306
-    #     options: >-
-    #       --health-cmd="mysqladmin ping"
-    #       --health-interval=10s
-    #       --health-timeout=10s
-    #       --health-retries=3
-    # steps:
-    # - uses: actions/checkout@v2
-
-    # - name: Set up Python
-    #   uses: actions/setup-python@v2
-    #   with:
-    #     python-version: '3.8'  # Replace with the version used in your project
-
-    # - name: Install dependencies
-    #   run: |
-    #     python -m pip install --upgrade pip
-    #     pip install flask requests pytest
-
-    # - name: Start Flask application
-    #   run: |
-    #     export FLASK_APP=your_flask_app_file.py  # Replace with your Flask app file
-    #     flask run --host=0.0.0.0 --port=5002 &  # Start Flask in the background
-    #     sleep 5  # Wait for Flask to start
-
-    # Add any steps here if you need to set up services or databases
-
-    # - name: Run E2E Tests
-    #   run: |
-    #     pytest e2e_test_appeals.py
-
-name: E2E Tests
+name: Build, Push Docker and Run E2E Tests
 
 on:
   push:
-    branches: [ yandex ]  # Or any other branch you want to run your tests on
+    branches: [ yandex ]
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
-
-    services:
-      mysql:
-        image: mysql:5.7
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: testdb
-        ports:
-          - 3306:3306
-
     steps:
     - uses: actions/checkout@v2
 
-    - name: Build the Docker image
-      run: docker build -t my-flask-app .
+    - name: Build docker image
+      run: docker build . --file Dockerfile --tag cr.yandex/${{ secrets.YC_REGISTRY_ID }}/delivery-service:latest
 
-    - name: Run the Flask app
-      run: docker run -d -p 5002:5002 my-flask-app
-
-    - name: Set up Python
-      uses: actions/setup-python@v2
+    - name: Login to YC Registry
+      uses: docker/login-action@v3.0.0
       with:
-        python-version: '3.8'  # Make sure this matches your Python version
+        registry: cr.yandex
+        username: json_key
+        password: ${{ secrets.YC_KEYS }}
 
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pytest requests  # And any other dependencies you need for the tests
+    - name: Push tag to YC Registry
+      run: docker push cr.yandex/${{ secrets.YC_REGISTRY_ID }}/delivery-service:latest
 
-    - name: Run E2E Tests
-      run: pytest e2e_test_appeals.py  # Replace with the path to your test script
+  deploy:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Deploy serverless container
+      uses: yc-actions/yc-sls-container-deploy@v1
+      with:
+        yc-sa-json-credentials: ${{ secrets.YC_KEYS }}
+        container-name: ${{ secrets.YC_CONTAINER_NAME }}
+        folder-id: ${{ secrets.YC_FOLDER_ID }}
+        revision-image-url: cr.yandex/${{ secrets.YC_REGISTRY_ID }}/delivery-service:latest
+        revision-service-account-id: ${{ secrets.YC_SA_ID }}
+        revision-env: |
+          AMQP_URL=${{ secrets.ENV_AMQP_URL }}
+          POSTGRES_URL=${{ secrets.ENV_POSTGRES_URL }}

@@ -3,7 +3,7 @@ import requests
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///appeals.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://contestormi:RkQc0vo1DmYw@ep-young-haze-43228957.us-east-2.aws.neon.tech/appeals?sslmode=require'
 db = SQLAlchemy(app)
 
 class Appeal(db.Model):
