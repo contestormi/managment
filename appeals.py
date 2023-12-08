@@ -1,24 +1,24 @@
 from flask import Flask, jsonify, request
 import requests
 from flask_sqlalchemy import SQLAlchemy
+import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://contestormi:RkQc0vo1DmYw@ep-young-haze-43228957.us-east-2.aws.neon.tech/appeals?sslmode=require'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('ENV_POSTGRES_APPEALS_URL')
 db = SQLAlchemy(app)
 
 class Appeal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(255), nullable=False)
     house_id = db.Column(db.Integer, nullable=False)
-    management_info = db.Column(db.String(255))  # Сохраняем информацию об управляющей организации
+    management_info = db.Column(db.String(255))
 
 @app.route('/appeal', methods=['POST'])
 def create_appeal():
     data = request.json
     house_id = data.get('house_id')
     description = data.get('description')
-
-    # Запрос к первому микросервису для получения информации об управляющей организации
+    
     response = requests.get(f'http://house_service:5001/house/{house_id}')
     if response.status_code != 200:
         return jsonify({'error': 'House not found'}), 404
