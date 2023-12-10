@@ -1,9 +1,11 @@
 {
     "cSpell.words": [
+        "isready",
         "jsonify",
         "psycopg",
         "pytest",
         "SQLALCHEMY",
+        "testdb",
         "Мокаем",
         "Мокируем"
     ]

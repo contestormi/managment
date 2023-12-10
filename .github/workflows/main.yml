@@ -7,6 +7,21 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_DB: testdb
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.8
@@ -17,8 +32,8 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install Flask SQLAlchemy requests-mock flask_sqlalchemy psycopg2 pytest
-      - name: Access secret
-        run: echo "ENV_POSTGRES_APPEALS_URL=${{ secrets.ENV_POSTGRES_APPEALS_URL }}" >> $GITHUB_ENV
+      - name: Set up PostgreSQL URL
+        run: echo "ENV_POSTGRES_APPEALS_URL=postgresql://user:password@localhost:5432/testdb" >> $GITHUB_ENV
       - name: Run tests
         run: |
           pytest
