@@ -1,10 +1,11 @@
 import pytest
 from management import app, db, House, Management, Rating
+import os
 
 @pytest.fixture
 def client():
     app.config['TESTING'] = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://...'
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI')
 
     with app.app_context():
         db.drop_all()

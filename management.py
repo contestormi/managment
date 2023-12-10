@@ -3,7 +3,7 @@ import os
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://xaslace:SIV01YGjiQkC@ep-jolly-hat-46905879.us-east-2.aws.neon.tech/managment?sslmode=require'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('ENV_POSTGRES_MANAGMENT_URL')
 db = SQLAlchemy(app)
 
 class House(db.Model):

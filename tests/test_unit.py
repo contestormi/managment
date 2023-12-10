@@ -1,12 +1,13 @@
 import unittest
 from flask_testing import TestCase
 from management import app, db, House, Management, Rating
+import os
 
 class TestFlaskApp(TestCase):
   
     def create_app(self):
         app.config['TESTING'] = True
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://xaslace:SIV01YGjiQkC@ep-jolly-hat-46905879.us-east-2.aws.neon.tech/managment?sslmode=require'
+        app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI')
         return app
 
     def setUp(self):

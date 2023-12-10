@@ -7,6 +7,21 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_DB: testdb
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.8
@@ -17,15 +32,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install Flask SQLAlchemy requests-mock flask_sqlalchemy psycopg2 flask_testing pytest
-      - name: Build and run Docker image for e2e tests
-        run: |
-          docker build . --file Dockerfile --tag end-tests
-          docker run -p 8000:80 -d end-tests
-          sleep 5
+      - name: Set up PostgreSQL URL
+        run: echo "SQLALCHEMY_DATABASE_URI=postgresql://user:password@localhost:5432/testdb" >> $GITHUB_ENV
+      - name: Set up PostgreSQL URL
+        run: echo "ENV_POSTGRES_MANAGMENT_URL=${{ secrets.ENV_POSTGRES_MANAGMENT_URL }}" >> $GITHUB_ENV
       - name: Run tests with pytest
         run: |
           pytest
-
 
   build-and-push:
     needs: test
@@ -59,4 +72,4 @@ jobs:
         revision-image-url: cr.yandex/${{ secrets.YC_REGISTRY_ID }}/delivery-service:latest
         revision-service-account-id: ${{ secrets.YC_SA_ID }}
         revision-env: |
-          POSTGRES_URL=${{ secrets.ENV_POSTGRES_URL }}
+          ENV_POSTGRES_MANAGMENT_URL=${{ secrets.ENV_POSTGRES_MANAGMENT_URL }}
